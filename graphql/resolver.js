@@ -1,39 +1,51 @@
-const users = [
-  {
-    name: "Pablo Escobar",
-    age: 50,
-    email: "pablo.escobar@cartels.org"
-  },
-  {
-    name: "Miguel Angel",
-    age: 40,
-    email: "miguel.angel@cartels.org"
-  }
-]
+const Todo = require('../models/todo')
 
 module.exports = {
-  test() {
-    return {
-      count: users.length,
-      users,
+  // Resolvers for DB data
+  async getTodos() {
+    try {
+      return await Todo.findAll();
+    } catch (err) {
+      throw new Error('Fetch todos is not available')
     }
   },
-  random({ min, max, count }) {
-    const arr = [];
-    for (let i = 0; i < count; i++) {
-      const random = Math.random() * (max - min) + min;
-      arr.push(random)
-    }
-    return arr
-  },
-  addTestUser({ user: { name, email }}) {
-    const user = {
-      name,
-      email,
-      age: Math.ceil(Math.random() * 30)
-    }
-    users.push(user)
 
-    return user;
+  async createTodo({ todo }) {
+    try {
+      return await Todo.create({
+        title: todo.title,
+        done: false,
+      });
+    } catch (err) {
+      throw new Error('Title is required')
+    }
+  },
+
+  async completeTodo({ id }) {
+    try {
+      if (!id) throw new Error('ID is required')
+
+      const todo = await Todo.findByPk(id)
+      todo.done = true
+      await todo.save()
+
+      return todo
+    } catch (err) {
+      console.error(err)
+    }
+  },
+
+  async deleteTodo({ id }) {
+    try {
+      if (!id) throw new Error('ID is required')
+      const todo = await Todo.findByPk(id)
+      todo.destroy()
+
+      return true;
+    } catch (err) {
+      console.error(id)
+      return false; // boolean must be returned according to schema
+    }
   }
+
 }
